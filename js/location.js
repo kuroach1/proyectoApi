@@ -14,9 +14,13 @@ const fetchResidentNames = async (residentURLs) => {
     }
 };
 
-// Función para generar la tarjeta de una ubicación
 const generateLocationCard = (card, residentNames) => {
-    const residentsList = residentNames.map(name => `<li>${name}</li>`).join(''); // Genera una lista de residentes
+    const residentsList = residentNames.slice(0, 5).map(name => `<li>${name}</li>`).join(''); // Limita a 5 residentes al inicio
+    let residentsListFull = '';
+    if (residentNames.length > 5) {
+      residentsListFull = residentNames.slice(5).map(name => `<li>${name}</li>`).join(''); // Almacena el resto de los residentes
+    }
+    const residentsListSpan = residentsListFull ? `<span class="more-residents" data-residents-list-full="${residentsListFull}" onclick="showMoreResidents(event)">Mostrar más</span>` : ''; // Agrega el botón "Mostrar más"
     return `
         <div class="container-card">
             <img src="img/Screaming-Sun-Planet.avif" alt="imagen de la ubicación" class="image">
@@ -27,13 +31,24 @@ const generateLocationCard = (card, residentNames) => {
                     <div class="container-info">
                         <p><span>CREATED:</span> ${card.created}</p>
                         <p><span>RESIDENTS:</span></p>
-                        <ul>${residentsList}</ul> <!-- Lista de residentes -->
+                        <ul class="residents-list">${residentsList}</ul> <!-- Lista de residentes -->
+                        ${residentsListSpan}
                     </div>
                 </div>
             </div>
         </div>
     `;
-};
+  };
+
+  const showMoreResidents = (event) => {
+    const target = event.target;
+    const residentsList = target.previousElementSibling;
+    residentsList.innerHTML += target.dataset.residentsListFull;
+    target.remove();
+  };
+  
+  
+  
 
 // Evento al cargar la página
 document.addEventListener('DOMContentLoaded', async () => {
@@ -141,4 +156,5 @@ const filterCharactersByName = async (name) => {
         container.innerHTML = `<p>Error al cargar las ubicaciones.</p>`; // Muestra un mensaje de error si no se pueden cargar las ubicaciones
     }
 };
+
 
