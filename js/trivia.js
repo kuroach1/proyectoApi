@@ -1,41 +1,50 @@
-const scoreElement = document.getElementById('score'); // Elemento en el HTML donde se mostrará la puntuación
-const questionElement = document.getElementById('question'); // Elemento en el HTML donde se mostrará la pregunta
-const optionsElement = document.getElementById('options'); // Elemento en el HTML donde se mostrarán las opciones de respuesta
+const scoreElement = document.getElementById('score');
+const questionElement = document.getElementById('question');
+const optionsElement = document.getElementById('options');
 
-let score = 0; // Inicialización del puntaje
-let totalQuestions = 10; // Número total de preguntas
+let score = 0;
+let totalQuestions = 10;
 
 async function loadQuestion() {
+    // Realiza una solicitud a la API de Rick and Morty para obtener información de personajes
     const response = await fetch('https://rickandmortyapi.com/api/character/');
+    // Convierte la respuesta en formato JSON
     const data = await response.json();
+    // Extrae la lista de personajes
     const characters = data.results;
+    // Selecciona un personaje aleatorio de la lista
     const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
 
-    // Selecciona una propiedad aleatoria del personaje para la pregunta
-    const properties = [
-        { question: `¿Cuál es la especie de ${randomCharacter.name}?`, answer: randomCharacter.species },
-        { question: `¿Cuál es el género de ${randomCharacter.name}?`, answer: randomCharacter.gender },
-        { question: `¿Cuál es el estado de vida de ${randomCharacter.name}?`, answer: randomCharacter.status },
-        { question: `¿Cuál es el origen de ${randomCharacter.name}?`, answer: randomCharacter.origin.name }
-    ];
-    const randomProperty = properties[Math.floor(Math.random() * properties.length)];
+    // Selecciona un atributo aleatorio del personaje como la pregunta
+    const questionAttribute = Object.keys(randomCharacter)[Math.floor(Math.random() * Object.keys(randomCharacter).length)];
+    const question = `¿Cuál es el ${questionAttribute.replace('_', ' ')} de ${randomCharacter.name}?`;
+    // Guarda el valor del atributo seleccionado como respuesta correcta
+    let correctAnswer = randomCharacter[questionAttribute];
 
-    const question = randomProperty.question;
-    const correctAnswer = randomProperty.answer;
+    // Si el valor de la respuesta correcta es un objeto, intenta obtener un valor de cadena
+    if (typeof correctAnswer !== 'string') {
+        correctAnswer = Object.values(correctAnswer).find(value => typeof value === 'string');
+    }
 
     const options = [];
+    // Llena las opciones de respuesta con valores distintos al seleccionado, para evitar respuestas obvias
     while (options.length < 3) {
         const randomCharacter = characters[Math.floor(Math.random() * characters.length)];
-        const option = randomCharacter[randomProperty.answer.toLowerCase()];
-        if (option && option !== correctAnswer && !options.includes(option)) {
-            options.push(option);
+        let randomValue = randomCharacter[Object.keys(randomCharacter)[Math.floor(Math.random() * Object.keys(randomCharacter).length)]];
+        // Si el valor seleccionado es un objeto, intenta obtener un valor de cadena
+        if (typeof randomValue !== 'string') {
+            randomValue = Object.values(randomValue).find(value => typeof value === 'string');
+        }
+        if (!options.includes(randomValue) && randomValue !== correctAnswer) {
+            options.push(randomValue);
         }
     }
-    options.push(correctAnswer);
-    options.sort(() => Math.random() - 0.5);
+    options.push(correctAnswer); // Agrega la respuesta correcta a las opciones
+    options.sort(() => Math.random() - 0.5); // Mezcla las opciones de respuesta
 
-    return { question, options, correctAnswer };
+    return { question, options, correctAnswer }; // Devuelve la pregunta y sus detalles
 }
+
 
 async function renderQuestion() {
     if (totalQuestions === 0) {
@@ -69,5 +78,6 @@ async function renderQuestion() {
 }
 
 renderQuestion();
+
 
 
